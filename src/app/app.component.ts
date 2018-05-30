@@ -29,11 +29,45 @@ export class AppComponent {
   testeFire: any;
 
   constructor(private db: AngularFirestore) {
-    
   }
 
   ngOnInit() {
-    this.subscribeFunction();
+    // this.subscribeFunction();
+
+    this.teste = this.db.collection('testeFire').valueChanges().map(teste => {
+      let array = [];
+      teste.forEach(tes => {
+        let atendimento: DocumentReference = tes['atendimento'];
+        this.db.doc(atendimento.path).snapshotChanges().subscribe(tipo =>{
+          let position = null;
+
+          for (const obj in array) {
+            if (array.hasOwnProperty(obj)) {
+              if (array[obj]['id'] === tipo.payload.id){
+                position = obj;
+              }
+            }
+          }
+
+          if(position){
+            this.items[position] = {
+              id: tipo.payload.id,
+              tipo: tipo.payload.data()['tipo'],
+              teste: tes['teste']
+            }
+          } 
+          else {
+            array.push({
+              id: tipo.payload.id,
+              tipo: tipo.payload.data()['tipo'],
+              teste: tes['teste']
+            })
+          }
+        })
+        array.push(tes['teste'])
+      })
+      return array
+    })
   }
 
   subscribeFunction() {

@@ -5,7 +5,7 @@
     <td></td><td></td>
     <td>tipo_atendimento</td>
   </tr>
-  <tr *ngFor="let item of items">
+  <tr *ngFor="let item of teste | async">
     <td>{{ item.teste }}</td>
     <td></td><td></td>
     <td>{{ item.tipo }}</td>
