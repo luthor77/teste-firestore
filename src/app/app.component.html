@@ -1,13 +1,23 @@
 
 <table>
   <tr>
-    <td>testeFire</td>
+    <td id="testeFire">testeFire</td>
     <td></td><td></td>
-    <td>tipo_atendimento</td>
+    <td id="tipo_atendimento">tipo_atendimento</td>
   </tr>
-  <tr *ngFor="let item of teste | async">
+  <tr *ngFor="let item of merge | async">
     <td>{{ item.teste }}</td>
     <td></td><td></td>
     <td>{{ item.tipo }}</td>
   </tr>
 </table>
+
+<!-- 
+<p>
+  {{ teste }}
+</p>
+
+<h4>{{testes}}</h4>
+
+<button (click)="clicked()">Click me!</button>
+<span>{{message}}</span> -->
