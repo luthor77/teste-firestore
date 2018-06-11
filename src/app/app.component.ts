@@ -9,13 +9,10 @@ import { Observable } from 'rxjs/Observable';
 })
 export class AppComponent {
 	merge: any;
-	public teste: Observable<any[]>;
-	public testes = 'teste';
 
 	constructor(private subscribeService: SubscribeService) {}
 
 	ngOnInit() {
-		// this.teste = this.subscribeService.subscribeFunction()
 		this.merge = this.subscribeService.retornaArrayObservable();
 	}
 }

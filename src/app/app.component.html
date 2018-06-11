@@ -8,16 +8,6 @@
   <tr *ngFor="let item of merge | async">
     <td>{{ item.teste }}</td>
     <td></td><td></td>
-    <td>{{ item.tipo }}</td>
+    <td>{{ item?.tipo }}</td>
   </tr>
 </table>
-
-<!-- 
-<p>
-  {{ teste }}
-</p>
-
-<h4>{{testes}}</h4>
-
-<button (click)="clicked()">Click me!</button>
-<span>{{message}}</span> -->
