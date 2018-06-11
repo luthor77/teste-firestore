@@ -16,7 +16,8 @@ export class SubscribeService {
 
 	retornaArrayObservable() {
 		return this.db.collection('testeFire').stateChanges()
-			.flatMap(tfCollection => {
+			.switchMap(tfCollection => {
+				let tipoAtendimento = []
 
 				tfCollection.forEach(doc => {
 					switch (doc.payload.type) {
@@ -24,11 +25,7 @@ export class SubscribeService {
 							{
 								// cria um observable unindo os observables de cada tipo de atendimento
 								if (doc.payload.doc.data()['atendimento']) {
-									if (!this.merge){
-										this.merge = Observable.merge(this.tipoAtendimento(doc.payload.doc.data()['atendimento'].path));
-									} else {
-										this.merge = Observable.merge(this.merge, this.tipoAtendimento(doc.payload.doc.data()['atendimento'].path));
-									}
+									tipoAtendimento.push(doc.payload.doc.data()['atendimento'].path)
 									this.pushArray(doc)
 								} else {
 									this.array.push({
@@ -47,15 +44,28 @@ export class SubscribeService {
 					}
 				})
 
+				let uniqueArray = tipoAtendimento.filter(function(item, pos, self) {
+					return self.indexOf(item) === pos;
+				})
+
+				tipoAtendimento = []
+
+				uniqueArray.forEach(element => {
+					tipoAtendimento.push(this.tipoAtendimento(element))
+				})
+
+				this.merge = Observable.merge(...tipoAtendimento)
+
 				return this.merge
 			})
 			.map(tipo_atendimento => {
-				console.log(tipo_atendimento.payload.data()['tipo']);
-				
+				console.log(tipo_atendimento['payload'].data()['tipo']);
+
 				return this.verificaArray(tipo_atendimento)
 			})
 			// impede que o async pipe crie vários subscribes se for utilizado mais de uma vez no template
 			.share()
+			
 	}
 
 	// verifica a posição do array e o id para alterar o dado somente na posição específica
@@ -71,10 +81,10 @@ export class SubscribeService {
 	reDoMerge() {
 		this.db.collection('testeFire').valueChanges().take(1).subscribe(tfCollection => {
 			this.merge = null;
-			
+
 			tfCollection.forEach(doc => {
 				if (doc['atendimento']) {
-					if (!this.merge){
+					if (!this.merge) {
 						this.merge = Observable.merge(this.tipoAtendimento(doc['atendimento'].path));
 					} else {
 						this.merge = Observable.merge(this.merge, this.tipoAtendimento(doc['atendimento'].path));
