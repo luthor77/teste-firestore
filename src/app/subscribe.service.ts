@@ -31,8 +31,6 @@ export class SubscribeService {
 				return this.createAtendimentoObs()
 			})
 			.map(tipo_atendimento => {
-				console.log(tipo_atendimento.payload.data());
-
 				// verifica a posição do array e o id para alterar o dado somente na posição específica quando há modificações
 				// no tipo de atendimento
 				return this.verificaArray(tipo_atendimento)
