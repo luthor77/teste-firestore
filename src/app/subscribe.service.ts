@@ -16,8 +16,8 @@ export class SubscribeService {
 
 	retornaArrayObservable() {
 		return this.db.collection('testeFire').stateChanges()
-			.switchMap(tfCollection => {
-				let tipoAtendimento = []
+			.flatMap(tfCollection => {
+				let tipoAtendimento
 
 				tfCollection.forEach(doc => {
 					switch (doc.payload.type) {
@@ -25,7 +25,7 @@ export class SubscribeService {
 							{
 								// cria um observable unindo os observables de cada tipo de atendimento
 								if (doc.payload.doc.data()['atendimento']) {
-									tipoAtendimento.push(doc.payload.doc.data()['atendimento'].path)
+									tipoAtendimento = this.reDoMerge()
 									this.pushArray(doc)
 								} else {
 									this.array.push({
@@ -38,25 +38,13 @@ export class SubscribeService {
 							}
 						case 'modified':
 							{
-								this.modificaArray(doc)
+								tipoAtendimento = this.modificaArray(doc)
 								break;
 							}
 					}
 				})
 
-				let uniqueArray = tipoAtendimento.filter(function(item, pos, self) {
-					return self.indexOf(item) === pos;
-				})
-
-				tipoAtendimento = []
-
-				uniqueArray.forEach(element => {
-					tipoAtendimento.push(this.tipoAtendimento(element))
-				})
-
-				this.merge = Observable.merge(...tipoAtendimento)
-
-				return this.merge
+				return tipoAtendimento
 			})
 			.map(tipo_atendimento => {
 				console.log(tipo_atendimento['payload'].data()['tipo']);
@@ -65,7 +53,31 @@ export class SubscribeService {
 			})
 			// impede que o async pipe crie vários subscribes se for utilizado mais de uma vez no template
 			.share()
-			
+
+	}
+
+	reDoMerge() {
+		return this.db.collection('testeFire').valueChanges().take(1).switchMap(tfCollection => {
+			let tipoAtendimento = [];
+
+			tfCollection.forEach(doc => {
+				if (doc['atendimento']) {
+					tipoAtendimento.push(doc['atendimento'].path)
+				}
+			})
+
+			let uniqueArray = tipoAtendimento.filter(function(item, pos, self) {
+				return self.indexOf(item) === pos;
+			})
+
+			tipoAtendimento = []
+
+			uniqueArray.forEach(element => {
+				tipoAtendimento.push(this.tipoAtendimento(element))
+			})
+
+			return Observable.merge(...tipoAtendimento)
+		})
 	}
 
 	// verifica a posição do array e o id para alterar o dado somente na posição específica
@@ -76,22 +88,6 @@ export class SubscribeService {
 			}
 		})
 		return this.array
-	}
-
-	reDoMerge() {
-		this.db.collection('testeFire').valueChanges().take(1).subscribe(tfCollection => {
-			this.merge = null;
-
-			tfCollection.forEach(doc => {
-				if (doc['atendimento']) {
-					if (!this.merge) {
-						this.merge = Observable.merge(this.tipoAtendimento(doc['atendimento'].path));
-					} else {
-						this.merge = Observable.merge(this.merge, this.tipoAtendimento(doc['atendimento'].path));
-					}
-				}
-			})
-		})
 	}
 
 	modificaArray(testeFire) {
@@ -105,7 +101,6 @@ export class SubscribeService {
 						//verifica se a propriedade atendimento possui o mesmo id do objeto no array e adiciona
 						if (id[1] != this.array[obj]['id_atendimento']) {
 							this.array[obj]['id_atendimento'] = id[1]
-							this.reDoMerge();
 						}
 						// se a propriedade atendimento não existir no documento
 					} else {
@@ -113,7 +108,6 @@ export class SubscribeService {
 						if (this.array[obj]['id_atendimento']) {
 							delete this.array[obj]['id_atendimento']
 							delete this.array[obj]['tipo']
-							this.reDoMerge();
 						}
 					}
 
@@ -123,6 +117,8 @@ export class SubscribeService {
 				}
 			}
 		}
+
+		return this.reDoMerge()
 	}
 
 	// preenche o array
