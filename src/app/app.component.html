@@ -6,7 +6,7 @@
     <td id="tipo_atendimento">tipo_atendimento</td>
   </tr>
   <tr *ngFor="let item of merge | async">
-    <td>{{ item.teste }}</td>
+    <td>{{ item?.teste }}</td>
     <td></td><td></td>
     <td>{{ item?.tipo }}</td>
   </tr>
