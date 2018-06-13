@@ -15,37 +15,33 @@ export class SubscribeService {
 
 	// retorna um array asincrono que monitora as mudanças na tabela
 	retornaArrayObservable() {
-		return this.db.collection('testeFire').stateChanges()
+		return this.db.collection('clientes').stateChanges()
 			.switchMap(tfCollection => {
 				tfCollection.forEach(doc => {
 					// se for uma adição, coloca no array
 					doc.payload.type === 'added' ? this.pushArray(doc) :
-					// se for uma alteração, modifica o array
-					doc.payload.type === 'modified' ? this.modificaArray(doc) :
-					// se for uma remoção, remove o objeto referente a ele no array
-					doc.payload.type === 'removed' ? this.array = this.array.filter(obj => obj['key'] != doc.payload.doc.id) :
-					null
+						// se for uma alteração, modifica o array
+						doc.payload.type === 'modified' ? this.modificaArray(doc) :
+						// se for uma remoção, remove o objeto referente a ele no array
+						doc.payload.type === 'removed' ? this.array = this.array.filter(obj => obj['key'] != doc.payload.doc.id) :
+						null
 				})
 
-				// retorna observables dos tipos de atendimento referidos nos documentos da coleção testeFire
+				// retorna observables dos tipos de atendimento referidos nos documentos da coleção clientes
 				return this.createAtendimentoObs()
 			})
-			.map(tipo_atendimento => {
-				// verifica a posição do array e o id para alterar o dado somente na posição específica quando há modificações
-				// no tipo de atendimento
-				return this.verificaArray(tipo_atendimento)
-			})
+			.map(tipo_atendimento => this.verificaArray(tipo_atendimento))
 			// impede que o async pipe crie vários subscribes se for utilizado mais de uma vez no template
 			.share()
 	}
 
 
 	createAtendimentoObs() {
-		return this.db.collection('testeFire').valueChanges().take(1).switchMap(tfCollection => {
+		return this.db.collection('clientes').valueChanges().take(1).switchMap(tfCollection => {
 			let tipo_atendimentos = [];
 
 			tfCollection.forEach(doc => {
-				doc['atendimento'] ? tipo_atendimentos.push(doc['atendimento'].path) : null
+				doc['tipo_atendimento'] ? tipo_atendimentos.push(doc['tipo_atendimento'].path) : null
 			})
 
 			// tira as referências duplicadas do array
@@ -61,6 +57,8 @@ export class SubscribeService {
 		})
 	}
 
+	// verifica a posição do array e o id para alterar o dado somente na posição específica quando há modificações
+	// no tipo de atendimento
 	verificaArray(tipo) {
 		this.array.forEach(obj => {
 			if (obj['id_atendimento'] === tipo['payload'].id)
@@ -70,12 +68,12 @@ export class SubscribeService {
 		return this.array
 	}
 
-	modificaArray(testeFire) {
+	modificaArray(clientes) {
 		this.array.forEach(element => {
-			if (element['key'] === testeFire.payload.doc.id) {
+			if (element['key'] === clientes.payload.doc.id) {
 				// verifica se há a propriedade atendimento no documento
-				if (testeFire.payload.doc.data()['atendimento']) {
-					let id = testeFire.payload.doc.data()['atendimento'].path.split('/', 2)[1];
+				if (clientes.payload.doc.data()['tipo_atendimento']) {
+					let id = clientes.payload.doc.data()['tipo_atendimento'].path.split('/', 2)[1];
 					//verifica se a propriedade atendimento possui o mesmo id do objeto no array e adiciona
 					if (id != element['id_atendimento'])
 						element['id_atendimento'] = id
@@ -89,26 +87,26 @@ export class SubscribeService {
 					}
 				}
 
-				if (element['teste'] != testeFire.payload.doc.data()['teste'])
-					element['teste'] = testeFire.payload.doc.data()['teste']
+				if (element['empresa'] != clientes.payload.doc.data()['empresa'])
+					element['empresa'] = clientes.payload.doc.data()['empresa']
 			}
 		})
 	}
 
-	pushArray(testeFire) {
+	pushArray(clientes) {
 		// verifica se existe a propriedade atendimento no documento
-		(testeFire.payload.doc.data()['atendimento']) ?
-		this.tipoAtendimento(testeFire.payload.doc.data()['atendimento'].path).take(1).subscribe(doc => {
+		(clientes.payload.doc.data()['tipo_atendimento']) ?
+		this.tipoAtendimento(clientes.payload.doc.data()['tipo_atendimento'].path).take(1).subscribe(doc => {
 				this.array.push({
-					key: testeFire.payload.doc.id,
+					key: clientes.payload.doc.id,
 					id_atendimento: doc.payload.id,
 					tipo: doc.payload.data()['tipo'],
-					teste: testeFire.payload.doc.data()['teste']
+					empresa: clientes.payload.doc.data()['empresa']
 				})
 			}):
 			this.array.push({
-				key: testeFire.payload.doc.id,
-				teste: testeFire.payload.doc.data()['teste']
+				key: clientes.payload.doc.id,
+				empresa: clientes.payload.doc.data()['empresa']
 			})
 	}
 }

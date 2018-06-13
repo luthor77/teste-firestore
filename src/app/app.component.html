@@ -1,13 +1,18 @@
 
 <table>
   <tr>
-    <td id="testeFire">testeFire</td>
+    <td>Clientes</td>
     <td></td><td></td>
-    <td id="tipo_atendimento">tipo_atendimento</td>
+    <td>Tipos de atendimento</td>
+    <td></td><td></td>
+    <td>Atendimento</td>
   </tr>
   <tr *ngFor="let item of merge | async">
-    <td>{{ item?.teste }}</td>
+    <td>{{ item?.empresa }}</td>
     <td></td><td></td>
     <td>{{ item?.tipo }}</td>
+    <td></td><td></td>
+    <td>{{ item?.atendimento }}</td>
+    <td></td><td></td>
   </tr>
 </table>
